@@ -8,7 +8,9 @@
         "KEY_OK" : 352,
         "KEY_EXIT" : 1,
         "KEY_INFO" : 358,
-		"KEY_CONTROL" : 1000
+		"KEY_CONTROL" : 1000,
+		"KEY_IP" : 1001,
+		"KEY_ACCEL": 1002
 		},
     "capabilities": [
         "configurable"

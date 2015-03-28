@@ -1,9 +1,15 @@
 #include <pebble.h>
 #include "control.h"
 #include "communication.h"
-
+#include "globals.h"
 
 void handle_init(void) {
+	accel = false;
+	if (persist_exists(KEY_ACCEL))
+	{
+		accel = persist_read_bool(KEY_ACCEL);
+	}
+
 	initCommunication();
 	show_control();//creates s_window and layers
   bind_clicks(); 

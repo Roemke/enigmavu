@@ -1,23 +1,27 @@
 #include <pebble.h>
 #include "communication.h"
+#include "globals.h"
 
-//codes needed here and in c-programm
-//seems to be neccessary but not nice
-//codes for the vuplus
-#define KEY_POWER 116
-#define KEY_VOLUP 115
-#define KEY_VOLDOWN 114
-#define KEY_ARRUP 103
-#define KEY_ARRDOWN 108
-#define KEY_OK 352
-#define KEY_INFO 358
-#define KEY_EXIT 1
-//codes for communication 
-#define KEY_CONTROL 1000
+
+extern bool accel;
 
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
-  APP_LOG(APP_LOG_LEVEL_INFO, "received message - why :-)");
-} 
+  APP_LOG(APP_LOG_LEVEL_INFO, "received message ");
+  Tuple *t = dict_read_first(iterator);
+  // Process all pairs present
+  while (t != NULL) {
+    switch (t->key)
+    {
+    case KEY_IP :
+    	break;
+    case KEY_ACCEL:
+    	accel = t->value->uint8 == 1;
+    	persist_write_bool(KEY_ACCEL,accel);
+    	break;
+    }
+  }
+}
+
 static void inbox_dropped_callback(AppMessageResult reason, void *context) {
   APP_LOG(APP_LOG_LEVEL_ERROR, "Message dropped!");
 }
@@ -27,7 +31,7 @@ static void outbox_failed_callback(DictionaryIterator *iterator, AppMessageResul
 }
 
 static void outbox_sent_callback(DictionaryIterator *iterator, void *context) {
-  //APP_LOG(APP_LOG_LEVEL_INFO, "Outbox send success!");
+  APP_LOG(APP_LOG_LEVEL_INFO, "Outbox send success!");
 }
 
 //send key to phone

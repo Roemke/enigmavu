@@ -8,6 +8,8 @@ function readyCallback(event) {
   isReady = true;
   var callback;
   options = getOptions();
+  console.log('options: '+ JSON.stringify(options) );
+
   while (callbacks.length > 0) { //if callbacks on stack, process them
     callback = callbacks.shift();
     callback(event);
@@ -17,10 +19,22 @@ function readyCallback(event) {
 function showConfiguration(event) {
   onReady(function() {
     console.log("showConfiguration");
-    var opts = getOptions(); //load from localStorage
-    var url  = "http://zb42.de/pebble/enigmavu/configure.html";
+    //var opts = getOptions(); //load from localStorage
+    //opts = JSON.stringify(opts);
+    //console.log("opts are " + opts);
+    //var url  = "http://zb42.de/pebble/enigmavu/configure.html";
     //var url = "http://192.168.2.54/roemke/pebble/enigmavu/configure.html";
-    Pebble.openURL(url + "#v=" + encodeURIComponent(VERSION) + "&options=" + encodeURIComponent(opts));
+    var url = "http://192.168.2.54/roemke/pebble/fuzzy/configure-fuzzy-text.html";
+    if (opts && opts.ip)
+    {
+    	console.log("open url with ip");
+    	Pebble.openURL(url);// + "#v=" + encodeURIComponent(VERSION) + "&options=" + encodeURIComponent(opts));	
+    }
+    else 
+    {
+    	console.log("open url without ip");
+    	Pebble.openURL(url);// + "#v=" + encodeURIComponent(VERSION));
+    }
   });
 }
 
@@ -29,23 +43,33 @@ function webviewclosed(event) {
   var resp = event.response;
   //console.log('configuration response: '+ resp + ' ('+ typeof resp +')');
   options = JSON.parse(resp); //store it in global object 
-  if (typeof options.ip === 'undefined')
+  if (typeof options.ip !== 'undefined')
   {
-    return;
+	  onReady(function() {	  	
+	    //console.log('configuration response: '+ JSON.stringify(options) + ' ('+ typeof resp +')');
+	    setOptions(resp); //store in local Storage as String 
+	    //for version 1.2 send to pebble
+	    var message = prepareConfig(); //options is global Object
+	    Pebble.sendAppMessage(message, function(event) {
+		    // Message delivered successfully
+  			}, logError);
+	  });
   }
-
-  onReady(function() {
-    setOptions(resp); //store in local Storage 
-  });
+}
+function logError(event) {
+  console.log('Unable to deliver message with transactionId='+
+              event.data.transactionId +' ; Error is'+ event.error.message);
 }
 
 // Retrieves stored configuration from localStorage.
 function getOptions() {
-  return localStorage.getItem("options") || ("{}");
+  console.log(JSON.stringify(localStorage.getItem('options')));
+  return JSON.parse(localStorage.getItem("options")) || ("{}");
 }
 
 // Stores options in localStorage.
 function setOptions(options) {
+  console.log('options: '+ JSON.stringify(options));
   localStorage.setItem("options", options);
 }
 

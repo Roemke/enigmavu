@@ -1,7 +1,8 @@
-#include "control.h"
-#include "communication.h"
 
 #include <pebble.h>
+#include "control.h"
+#include "communication.h"
+#include "globals.h" //bool defined in pebble, so it must be here
 
 // BEGIN AUTO-GENERATED UI CODE; DO NOT MODIFY
 static Window *s_window;
@@ -27,6 +28,23 @@ enum Modes {
   volume=2 
 };
 static uint8_t mode = none;
+
+//handle accelarator data
+static void data_handler(AccelData *data, uint32_t num_samples) {
+  // Long lived buffer
+  static char s_buffer[128];
+
+  // Compose string of all data
+  snprintf(s_buffer, sizeof(s_buffer),
+    "N X,Y,Z\n0 %d,%d,%d\n1 %d,%d,%d\n2 %d,%d,%d",
+    data[0].x, data[0].y, data[0].z,
+    data[1].x, data[1].y, data[1].z,
+    data[2].x, data[2].y, data[2].z
+  );
+
+  //Show the data
+  APP_LOG(APP_LOG_LEVEL_INFO,s_buffer);
+}
 
 static void initialise_ui(void) {
   s_window = window_create();
@@ -126,6 +144,14 @@ static void back_single_click_handler(ClickRecognizerRef recognizer, void *conte
 	resetText();
 }
 
+static void switchOnAccel()
+{
+	APP_LOG(APP_LOG_LEVEL_INFO,"reached switch on");
+	int num_samples = 3;
+    accel_data_service_subscribe(num_samples, data_handler);
+    // Choose update rate, 25 is standard
+    //accel_service_set_sampling_rate(ACCEL_SAMPLING_25HZ);
+}
 //select long click - previous
 static void select_long_click_handler(ClickRecognizerRef recognizer, void *context) 
 {
@@ -138,10 +164,14 @@ static void down_single_click_handler(ClickRecognizerRef recognizer, void *conte
 		case none:
 			setAltText(textVol);
 			mode = volume;
+			//if (accel)
+				switchOnAccel();
 			sendVolDown();
 			break;
 	  case volume:
 			sendVolDown();
+			//if (accel)
+				switchOnAccel();
 			break;
 	  case arrow:
 			sendArrowDown();
