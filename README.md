@@ -22,4 +22,8 @@ Lower Button. Sends Volume down to receiver.
 With the up/down Buttons you can control the Volume.
 Middle Button leaves this mode (back button also leaves).
 
+If you choose acceleration sensor in config, you can
+control the movement of volume and program by turning
+your wrist. Turn forward means down, backwards is up.
+This is somewhat experimental ...
  

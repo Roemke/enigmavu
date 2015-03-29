@@ -42,6 +42,7 @@ static uint8_t accMode = accNone;
 
 AppTimer * timerScroll = 0;
 
+
 //window functions
 static void initialise_ui(void) {
   s_window = window_create();
@@ -255,6 +256,7 @@ static void up_single_click_handler(ClickRecognizerRef recognizer, void *context
 			sendVolUp();
 			break;
 	  case arrow:
+
 			sendArrowUp();
 			break;
 	}

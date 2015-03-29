@@ -1,4 +1,4 @@
-var VERSION = "1.1";
+var VERSION = "1.2";
 
 var isReady = false;
 var callbacks = []; //stack for callbacks
@@ -38,8 +38,8 @@ function readyCallback(event) {
 function showConfiguration(event) {
   onReady(function() {
     var opts = getOptionsAsString(); //load from localStorage
-    //var url  = "http://zb42.de/pebble/enigmavu/configure.html";
-    var url = "http://192.168.2.54/roemke/pebble/enigmavu/configure.html";
+    var url  = "http://zb42.de/pebble/enigmavu/configure.html";
+    //var url = "http://192.168.2.54/roemke/pebble/enigmavu/configure.html";
     console.log("showConfiguration with string: " + url + "#v=" + encodeURIComponent(VERSION) + "&options=" + encodeURIComponent(opts));
     Pebble.openURL(url + "#v=" + encodeURIComponent(VERSION) + "&options=" + encodeURIComponent(opts));
   });
