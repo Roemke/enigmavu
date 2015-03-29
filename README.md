@@ -2,11 +2,6 @@
 EnigmaVu - Remote control
 ==========================================
 
-Attention Master Branch is my personal development branch
-in the moment it is v2.0 and NOT working.
-
-stable is version1.1
-
 A simple remote Control for a satellite receiver.
 The receiver must support the Enigma2 Web-Interface.
 The following keys are supported, tested with vu+ Solo2
