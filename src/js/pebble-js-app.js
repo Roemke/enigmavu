@@ -4,6 +4,18 @@ var isReady = false;
 var callbacks = []; //stack for callbacks
 var options = {};
 
+//convert object to object with keys
+function prepareConfiguration(options) {
+  //console.log("In prepare with " + serialized_settings);
+  var result =  {
+    KEY_ACCEL : options.accel ? 1 : 0,
+    KEY_IP : options.ip
+  };
+  //need to append time-table to result, no can't handle that
+  var dataCounter = 0; 
+  return result;
+}
+
 function readyCallback(event) {
   isReady = true;
   var callback;
@@ -26,9 +38,9 @@ function readyCallback(event) {
 function showConfiguration(event) {
   onReady(function() {
     var opts = getOptionsAsString(); //load from localStorage
-    var url  = "http://zb42.de/pebble/enigmavu/configure.html";
-    //var url = "http://192.168.2.54/roemke/pebble/enigmavu/configure.html";
-    //console.log("showConfiguration with string: " + url + "#v=" + encodeURIComponent(VERSION) + "&options=" + encodeURIComponent(opts));
+    //var url  = "http://zb42.de/pebble/enigmavu/configure.html";
+    var url = "http://192.168.2.54/roemke/pebble/enigmavu/configure.html";
+    console.log("showConfiguration with string: " + url + "#v=" + encodeURIComponent(VERSION) + "&options=" + encodeURIComponent(opts));
     Pebble.openURL(url + "#v=" + encodeURIComponent(VERSION) + "&options=" + encodeURIComponent(opts));
   });
 }
@@ -42,11 +54,10 @@ function webviewclosed(event) {
   {
 	  onReady(function() {	  	
 	    //console.log('configuration response: '+ JSON.stringify(options) + ' ('+ typeof resp +')');
-	    setOptions(resp); //store in local Storage as String 
+	    setOptionsAsString(resp); //store in local Storage as String 
 	    //for version 1.2 send to pebble
-	    var message = prepareConfig(); //options is global Object
-	    Pebble.sendAppMessage(message, function(event) {
-		    // Message delivered successfully
+	    Pebble.sendAppMessage(prepareConfiguration(options), function(event) {
+		    console.log("delivered message");
   			}, logError);
 	  });
   }

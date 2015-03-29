@@ -12,7 +12,7 @@
 //codes for communication
 #define KEY_CONTROL  1000
 #define KEY_IP  1001 // IP address of satellite receiver, not really needed
-#define KEY_ACCEL  1002	 //use accelerator for control
+#define KEY_ACCEL  1002	 //use acceleration sensor for control
 
 
-bool accel; //type bool is defined in pebble.h
+extern bool accel; //type bool is defined in pebble.h

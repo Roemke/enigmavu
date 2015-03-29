@@ -6,19 +6,22 @@
 extern bool accel;
 
 static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
-  APP_LOG(APP_LOG_LEVEL_INFO, "received message ");
   Tuple *t = dict_read_first(iterator);
   // Process all pairs present
+  APP_LOG(APP_LOG_LEVEL_INFO, "received message ") ;
   while (t != NULL) {
-    switch (t->key)
+	switch (t->key)
     {
     case KEY_IP :
+    	APP_LOG(APP_LOG_LEVEL_INFO, "received message with ip %s ", (char *) t->value->cstring) ;
     	break;
     case KEY_ACCEL:
+    	APP_LOG(APP_LOG_LEVEL_INFO, "received message with accel %d ", (int) t->value->uint8) ;
     	accel = t->value->uint8 == 1;
     	persist_write_bool(KEY_ACCEL,accel);
     	break;
     }
+    t = dict_read_next(iterator);
   }
 }
 

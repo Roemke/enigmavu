@@ -14,38 +14,35 @@ static ActionBarLayer *s_actionbarlayer_1;
 static TextLayer *tl_1Arrow;
 static TextLayer *tl_3Vol;
 static TextLayer *tl_2Power;
-
+//------------------------------------
 static char * textPower = "Power";
 static char * textVol = "Volume";
 static char * textArrow = "Program";
 static char * textUp = "Up";
 static char * textDown = "Down";
 static char * textOK = "OK";
+//------------------------------
+
+
 
 enum Modes {
   none=0, 
   arrow=1, 
   volume=2 
 };
+enum AccelModes
+{
+  accNone 	= 0,
+  accUp 	= 1,
+  accDown 	= 2
+};
+
 static uint8_t mode = none;
+static uint8_t accMode = accNone;
 
-//handle accelarator data
-static void data_handler(AccelData *data, uint32_t num_samples) {
-  // Long lived buffer
-  static char s_buffer[128];
+AppTimer * timerScroll = 0;
 
-  // Compose string of all data
-  snprintf(s_buffer, sizeof(s_buffer),
-    "N X,Y,Z\n0 %d,%d,%d\n1 %d,%d,%d\n2 %d,%d,%d",
-    data[0].x, data[0].y, data[0].z,
-    data[1].x, data[1].y, data[1].z,
-    data[2].x, data[2].y, data[2].z
-  );
-
-  //Show the data
-  APP_LOG(APP_LOG_LEVEL_INFO,s_buffer);
-}
-
+//window functions
 static void initialise_ui(void) {
   s_window = window_create();
   window_set_background_color(s_window, GColorBlack);
@@ -124,6 +121,76 @@ static void handle_window_unload(Window* window) {
   //APP_LOG(APP_LOG_LEVEL_INFO,"Destroy window");
 }
 
+static void timerScrollRun()
+{
+	if (accMode == accUp && mode == volume)
+		sendVolUp();
+	else if (accMode == accDown && mode == volume)
+		sendVolDown();
+	else if (accMode == accUp && mode == arrow)
+		sendArrowUp();
+	else if (accMode == accDown && mode==arrow)
+		sendArrowDown();
+
+	if (timerScroll)
+		app_timer_cancel(timerScroll);
+	timerScroll = 0;
+	timerScroll = app_timer_register(500, timerScrollRun, 0); //call it again
+}
+
+
+//handle accelarator data
+static void data_handler(AccelData *data, uint32_t num_samples) {
+  //static char s_buffer[128];
+  for (int i = 0; i < 3; ++i)
+  {
+	  if (data[i].y > 1000 && data[i].z > -500 && accMode != accDown)
+	  {
+		  //snprintf(s_buffer, sizeof(s_buffer),
+			//  "%d %d,%d,%d",i, data[i].x, data[i].y, data[i].z);
+		  //APP_LOG(APP_LOG_LEVEL_INFO,"should sitch up %s",s_buffer);
+		  accMode = accDown;
+		  timerScrollRun();
+		  //I think so, otherwise the signals to the phone come to fast
+		  break;
+	  }
+	  else if (data[i].y < -900 && data[i].z > -500 && accMode != accUp)
+	  {
+		  accMode = accUp;
+		  //snprintf(s_buffer, sizeof(s_buffer),
+			//  "%d %d,%d,%d",i, data[i].x, data[i].y, data[i].z);
+		  //APP_LOG(APP_LOG_LEVEL_INFO,"should switch on %s",s_buffer);
+		  timerScrollRun();
+		  break;
+	  }
+	  else if (data[i].y > -300  && data[i].y < 300 && data[i].z < -900 && (accMode == accUp || accMode ==accDown)	 )
+	  {
+		  accMode = accNone;
+		  if (timerScroll)
+			  app_timer_cancel(timerScroll);
+		  timerScroll = 0;
+		  //snprintf(s_buffer, sizeof(s_buffer),
+			//  "%d %d,%d,%d",i, data[i].x, data[i].y, data[i].z);
+		  //APP_LOG(APP_LOG_LEVEL_INFO,"should switch off up/down %s",s_buffer);
+		  break;
+	  }
+  }
+}
+static void switchOnAccel()
+{
+	int num_samples = 3;
+    accel_data_service_subscribe(num_samples, data_handler);
+    // Choose update rate, 25 is standard
+    accel_service_set_sampling_rate(ACCEL_SAMPLING_100HZ);
+}
+static void switchOffAccel()
+{
+	accMode = none; //no mode
+	accel_data_service_unsubscribe();//data recording not longer needed
+	if (timerScroll)
+		app_timer_cancel(timerScroll);
+	timerScroll = 0;
+}
 
 //back button left
 static void back_single_click_handler(ClickRecognizerRef recognizer, void *context) {
@@ -133,24 +200,19 @@ static void back_single_click_handler(ClickRecognizerRef recognizer, void *conte
 			//we have to leave the app 
 			hide_control();//could crash will see, no works
 			break;
-	  case volume:
+		case volume:
 			mode=none;
+			switchOffAccel();
 			break;
-	  case arrow:
+		case arrow:
 			mode=none;
+			switchOffAccel();
 			sendExit();
 			break;
 	}
 	resetText();
 }
 
-static void switchOnAccel()
-{
-	int num_samples = 3;
-    accel_data_service_subscribe(num_samples, data_handler);
-    // Choose update rate, 25 is standard
-    //accel_service_set_sampling_rate(ACCEL_SAMPLING_25HZ);
-}
 //select long click - previous
 static void select_long_click_handler(ClickRecognizerRef recognizer, void *context) 
 {
@@ -163,14 +225,12 @@ static void down_single_click_handler(ClickRecognizerRef recognizer, void *conte
 		case none:
 			setAltText(textVol);
 			mode = volume;
-			//if (accel)
+			if (accel)
 				switchOnAccel();
 			sendVolDown();
 			break;
 	  case volume:
 			sendVolDown();
-			//if (accel)
-				switchOnAccel();
 			break;
 	  case arrow:
 			sendArrowDown();
@@ -183,11 +243,13 @@ static void up_single_click_handler(ClickRecognizerRef recognizer, void *context
   //Window *window = (Window *)context;	
   switch (mode)
 	{
-		case none:
+  	  case none:
 			setAltText(textOK);
 			mode = arrow;
 			sendArrowDown();
 			sendArrowUp(); //back to original position 
+			if (accel)
+				switchOnAccel();
 			break;
 	  case volume:
 			sendVolUp();
@@ -205,12 +267,15 @@ static void select_single_click_handler(ClickRecognizerRef recognizer, void *con
 	{
 		case volume:
 			mode = none; //just go back
+			switchOffAccel();
 			resetText();
 			break;
 		case none:
+			switchOffAccel();
 			sendPower();
 			break;
 		case arrow:
+			switchOffAccel();
 			sendOK();
 			break;
 	}

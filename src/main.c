@@ -3,8 +3,9 @@
 #include "communication.h"
 #include "globals.h"
 
+bool accel = false;
+
 void handle_init(void) {
-	accel = false;
 	if (persist_exists(KEY_ACCEL))
 	{
 		accel = persist_read_bool(KEY_ACCEL);
