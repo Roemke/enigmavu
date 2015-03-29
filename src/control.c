@@ -146,7 +146,6 @@ static void back_single_click_handler(ClickRecognizerRef recognizer, void *conte
 
 static void switchOnAccel()
 {
-	APP_LOG(APP_LOG_LEVEL_INFO,"reached switch on");
 	int num_samples = 3;
     accel_data_service_subscribe(num_samples, data_handler);
     // Choose update rate, 25 is standard
