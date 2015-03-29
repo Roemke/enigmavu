@@ -4,7 +4,7 @@
 Changes
 ========
 
-The latest version is 1.0  To update, remove the watchface from your
+The latest version is 1.1  To update, remove the watchface from your
 watch and then load it again from your locker.
 
 The iOS version has to go through the Apple Store approval process - so
@@ -15,7 +15,12 @@ watchface. (I havn't access to an iphone)
 Android users do not need to wait for the Pebble app to update before
 updating the watchface.
 
-
+version 1.1
+-------------
+* 2015-03-29: fixed bug in storing options on js   
+              up to now not clear to me: event appmessage can be triggered
+              before ready event is triggered
+              
 version 1.0
 -------------
 * 2015-03-27: go to git, write some doc, create simple configuration site  

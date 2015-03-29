@@ -38,8 +38,8 @@
     "sdkVersion": "2",
     "shortName": "EnigmaVU",
     "uuid": "32ae1094-5971-425e-8a3d-3c2958e2f1cc",
-    "versionCode": 1,
-    "versionLabel": "1.0",
+    "versionCode": 1.1,
+    "versionLabel": "1.1",
     "watchapp": {
         "watchface": false
     }

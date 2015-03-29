@@ -49,7 +49,7 @@
 	<!-- change it to own hosted jquery script -->
 	<script type="text/javascript">
 	var getObject = {};
-    var version="1.0";   
+    var version="1.1";   
 	function optionsToObject() {
 		var params = {}; //read content of #config as array
 		$('#config').serializeArray().forEach(function(pair) {
@@ -71,11 +71,14 @@
 	//all but timetableSettings
 		var $form	= $('#config');
 		var opts	= getObject.options;
+		//console.log(opts);
 		//$('#out').append(JSON.stringify(opts));
 		//options coming from caller of this page - stored on phone I think,
 		//yes, call is coming from pebble-js-app
 		if (opts && opts.ip) {
-			$form.find('[name="ip"]').text(opts.ip);
+			//console.log("try to set ip");
+			//console.log("found: " + $form.find('[name="ip"]'));
+			$form.find('[name="ip"]').val(opts.ip);
 		}
 		if (opts && opts.accel) {
 			$form.find('[name="accel"]').prop('checked', true).checkboxradio('refresh');
@@ -124,7 +127,6 @@ function fillGetObject()
 		 	versionCheck();
 		} 
 	}
-	
 }
 
 //first bind on mobileinit and after that load jquery mobile, no use

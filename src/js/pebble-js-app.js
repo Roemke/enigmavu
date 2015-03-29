@@ -1,13 +1,21 @@
-var VERSION = "1.0";
+var VERSION = "1.1";
 
 var isReady = false;
 var callbacks = []; //stack for callbacks
-var options ;  
+var options = {};
 
 function readyCallback(event) {
   isReady = true;
   var callback;
-  options = getOptions();
+  //options = getOptions();
+  //ok, this works as exepced
+  
+  //console.log("readyCallback 1, options: " + options + " Type:" + typeof(options));
+  //console.log("options.ip: " + options.ip );
+  //console.log("options.accel: " + options.accel );
+  //options = JSON.stringify(options);
+ 
+  //console.log("readyCallback 2, options: " + options + " Type:" + typeof(options));
   while (callbacks.length > 0) { //if callbacks on stack, process them
     callback = callbacks.shift();
     callback(event);
@@ -16,10 +24,10 @@ function readyCallback(event) {
 
 function showConfiguration(event) {
   onReady(function() {
-    console.log("showConfiguration");
-    var opts = getOptions(); //load from localStorage
+    var opts = getOptionsAsString(); //load from localStorage
     var url  = "http://zb42.de/pebble/enigmavu/configure.html";
     //var url = "http://192.168.2.54/roemke/pebble/enigmavu/configure.html";
+    //console.log("showConfiguration with string: " + url + "#v=" + encodeURIComponent(VERSION) + "&options=" + encodeURIComponent(opts));
     Pebble.openURL(url + "#v=" + encodeURIComponent(VERSION) + "&options=" + encodeURIComponent(opts));
   });
 }
@@ -27,29 +35,39 @@ function showConfiguration(event) {
 //response from configure.html
 function webviewclosed(event) {
   var resp = event.response;
-  //console.log('configuration response: '+ resp + ' ('+ typeof resp +')');
+  console.log('configuration response: '+ resp + ' ('+ typeof resp +')');
   options = JSON.parse(resp); //store it in global object 
   if (typeof options.ip === 'undefined')
   {
     return;
   }
 
-  onReady(function() {
-    setOptions(resp); //store in local Storage 
+  onReady(function() 
+  {
+  	console.log("store: " + resp);
+    setOptionsAsString(resp); //store in local Storage 
   });
 }
 
 // Retrieves stored configuration from localStorage.
-function getOptions() {
+function getOptionsAsString() {
   return localStorage.getItem("options") || ("{}");
 }
 
-// Stores options in localStorage.
-function setOptions(options) {
-  localStorage.setItem("options", options);
+// Retrieves stored configuration from localStorage, convert to object
+function getOptions() {
+  var options = JSON.parse(localStorage.getItem("options"));
+  //console.log("read options from storage as object");
+  //console.log("options.ip: " + options.ip);
+  //console.log("options.accel: "  + options.accel);
+  
+  return options || {};
 }
 
-
+// Stores options in localStorage.
+function setOptionsAsString(options) {
+  localStorage.setItem("options", options);
+}
 
 // build an on stack for callback. 
 //work is started if onReady event from watch set isReady to true
@@ -68,6 +86,10 @@ Pebble.addEventListener("showConfiguration", showConfiguration);
 Pebble.addEventListener("webviewclosed", webviewclosed);
 //and one for message send from pebble
 //ack is send by pebble js, we don't have to care for it 
+//this could happen before app is ready - do we have to wait for app ready?
+//we surely need the options, so try to read the options
+//don't think that we need pebble ready because we don't need to send something to pebble
+
 Pebble.addEventListener('appmessage',
   function(e) { //handle keys send from pebble, hard coded in c-file and appinfo.json
       var payload = e.payload;
@@ -76,10 +98,14 @@ Pebble.addEventListener('appmessage',
          //console.log(JSON.stringify(payload));
          if (payload.KEY_CONTROL)   
          { 
+			if (!options.ip)
+				options = getOptions();
+			//console.log("caller of getObject was eventhandler of appmessage");
          	if (options.ip)
          	{
 	            var commandKey = payload.KEY_CONTROL;
 	            var req = new XMLHttpRequest();
+	            //console.log('Send: GET on http://' + options.ip + '/web/remotecontrol?command='+commandKey);
 	            req.open('GET', 'http://' + options.ip + '/web/remotecontrol?command='+commandKey, true); //true async
 	            req.onload = function(e) {//onload should always have state 4 ?
 	               if (req.readyState == 4 && req.status == 200) {
@@ -99,7 +125,7 @@ Pebble.addEventListener('appmessage',
 	            var xmlHttpTimeout=setTimeout( 
 	               function (){
 	                 req.abort();
-	                 //console.log("Request for vu+ timed out");
+	                 console.log("Request for vu+ timed out, maybe wrong ip: " +options.ip);
 	               },5000);
 	        }//eo options.ip found
 	        else
@@ -111,6 +137,10 @@ Pebble.addEventListener('appmessage',
         
 
 onReady(function(event) {
+  options = getOptions();
+  if (typeof options.ip === 'undefined')
+  	showConfiguration();
+  
   //var message = prepareConfiguration(getOptions());
   //transmitConfiguration(message); don't commit setting after loading js app
 });
