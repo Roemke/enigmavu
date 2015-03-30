@@ -39,7 +39,7 @@ enum AccelModes
 
 static uint8_t mode = none;
 static uint8_t accMode = accNone;
-
+static bool accSubscribed = false;
 AppTimer * timerScroll = 0;
 
 
@@ -180,17 +180,20 @@ static void data_handler(AccelData *data, uint32_t num_samples) {
 static void switchOnAccel()
 {
 	int num_samples = 3;
+	accSubscribed = true;
     accel_data_service_subscribe(num_samples, data_handler);
     // Choose update rate, 25 is standard
     accel_service_set_sampling_rate(ACCEL_SAMPLING_100HZ);
 }
 static void switchOffAccel()
 {
-	accMode = none; //no mode
-	accel_data_service_unsubscribe();//data recording not longer needed
+	if (accSubscribed)
+		accel_data_service_unsubscribe();//data recording not longer needed
 	if (timerScroll)
 		app_timer_cancel(timerScroll);
 	timerScroll = 0;
+	accMode = none; //no mode
+	accSubscribed = false;
 }
 
 //back button left
