@@ -133,8 +133,6 @@ static void timerScrollRun()
 	else if (accMode == accDown && mode==arrow)
 		sendArrowDown();
 
-	if (timerScroll)
-		app_timer_cancel(timerScroll);
 	timerScroll = 0;
 	timerScroll = app_timer_register(500, timerScrollRun, 0); //call it again
 }
@@ -145,7 +143,8 @@ static void data_handler(AccelData *data, uint32_t num_samples) {
   //static char s_buffer[128];
   for (int i = 0; i < 3; ++i)
   {
-	  if (data[i].y > 1000 && data[i].z > -500 && accMode != accDown)
+	  //if (data[i].y > 1000 && data[i].z > -500 && accMode != accDown)
+	  if (data[i].y > 500 && data[i].z > -700 && accMode != accDown)
 	  {
 		  //snprintf(s_buffer, sizeof(s_buffer),
 			//  "%d %d,%d,%d",i, data[i].x, data[i].y, data[i].z);
@@ -155,7 +154,8 @@ static void data_handler(AccelData *data, uint32_t num_samples) {
 		  //I think so, otherwise the signals to the phone come to fast
 		  break;
 	  }
-	  else if (data[i].y < -900 && data[i].z > -500 && accMode != accUp)
+	  //else if (data[i].y < -900 && data[i].z > -500 && accMode != accUp)
+	  else if (data[i].y < -500 && data[i].z > -700 && accMode != accUp)
 	  {
 		  accMode = accUp;
 		  //snprintf(s_buffer, sizeof(s_buffer),
@@ -164,7 +164,7 @@ static void data_handler(AccelData *data, uint32_t num_samples) {
 		  timerScrollRun();
 		  break;
 	  }
-	  else if (data[i].y > -300  && data[i].y < 300 && data[i].z < -900 && (accMode == accUp || accMode ==accDown)	 )
+	  else if (data[i].y > -300  && data[i].y < 300 && data[i].z < -700 && (accMode == accUp || accMode ==accDown)	 )
 	  {
 		  accMode = accNone;
 		  if (timerScroll)
