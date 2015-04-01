@@ -187,6 +187,8 @@ static void switchOnAccel()
 }
 static void switchOffAccel()
 {
+	//APP_LOG(APP_LOG_LEVEL_INFO,"accMode: %d   -  accSubscribe: %d timerscroll: %p",
+	  //  accMode, accSubscribed, timerScroll); 
 	if (accSubscribed)
 		accel_data_service_unsubscribe();//data recording not longer needed
 	if (timerScroll)

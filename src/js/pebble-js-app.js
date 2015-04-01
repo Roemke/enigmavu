@@ -109,50 +109,67 @@ Pebble.addEventListener("webviewclosed", webviewclosed);
 //we surely need the options, so try to read the options
 //don't think that we need pebble ready because we don't need to send something to pebble
 
-Pebble.addEventListener('appmessage',
-  function(e) { //handle keys send from pebble, hard coded in c-file and appinfo.json
+//just an experiment - if we are still sending we drop request from pebble
+var eventListener = (function (e)
+{
+    var stillSending = false;
+    //console.log("eventListener initialized");
+    return function(e)
+    {
       var payload = e.payload;
-      if (payload)
+      //console.log("in eventListener");
+      if (payload && !stillSending)
       {
-         //console.log(JSON.stringify(payload));
-         if (payload.KEY_CONTROL)   
-         { 
-			if (!options.ip)
-				options = getOptions();
-			//console.log("caller of getObject was eventhandler of appmessage");
-         	if (options.ip)
-         	{
-	            var commandKey = payload.KEY_CONTROL;
-	            var req = new XMLHttpRequest();
-	            //console.log('Send: GET on http://' + options.ip + '/web/remotecontrol?command='+commandKey);
-	            req.open('GET', 'http://' + options.ip + '/web/remotecontrol?command='+commandKey, true); //true async
-	            req.onload = function(e) {//onload should always have state 4 ?
-	               if (req.readyState == 4 && req.status == 200) {
-	                 clearTimeout(xmlHttpTimeout); 
-	                  if(req.status == 200) {
-	                     var response = req.responseText;
-	                     //console.log("It seems we have success with " + response);
-	                     } //else { console.log('Error'); }
-	                  } //status 200 
-	                  else
-	                  {
-	                    console.log("complete, but not ok - strange");
-	                  }
-	            };//onload
-	            req.send(null);
-	            // Timeout to abort in 5 seconds, property of XMLHttpRequest seems not to be supported
-	            var xmlHttpTimeout=setTimeout( 
-	               function (){
-	                 req.abort();
-	                 console.log("Request for vu+ timed out, maybe wrong ip: " +options.ip);
-	               },5000);
-	        }//eo options.ip found
-	        else
-	          Pebble.showSimpleNotificationOnPebble("Error", "Configuration of ip needed");
-         } //payload has key_control         
+        //console.log(JSON.stringify(payload));
+        if (payload.KEY_CONTROL)   
+        { 
+        if (!options.ip)
+          options = getOptions();
+          //console.log("caller of getObject was eventhandler of appmessage");
+          if (options.ip)
+          {
+            stillSending = true;
+            var commandKey = payload.KEY_CONTROL;  
+            var req = new XMLHttpRequest();
+            //console.log('Send: GET on http://' + options.ip + '/web/remotecontrol?command='+commandKey);
+            req.open('GET', 'http://' + options.ip + '/web/remotecontrol?command='+commandKey, true); //true async
+            //does not work: 
+            //req.open('GET', 'http://' + options.ip + '/cgi-bin/rc?'+commandKey, true); //true async
+            req.onload = function(e) {//onload should always have state 4 ?
+               if (req.readyState == 4 && req.status == 200) {
+                 clearTimeout(xmlHttpTimeout); 
+                  if(req.status == 200) {
+                     stillSending = false;
+                     //var response = req.responseText;
+                     //console.log("It seems we have success with " + response);
+                     } //else { console.log('Error'); }
+                  } //status 200 
+                  else
+                  {
+                    console.log("complete, but error, wrong command");
+                  }
+            };//onload
+            req.send(null);
+            // Timeout to abort in 5 seconds, property of XMLHttpRequest seems not to be supported
+            var xmlHttpTimeout=setTimeout( 
+               function (){
+                 req.abort();
+                 console.log("Request for vu+ timed out, maybe wrong ip: " +options.ip);
+               },5000);
+            }//eo options.ip found
+            else
+              Pebble.showSimpleNotificationOnPebble("Error", "Configuration of ip needed");
+        } //payload has key_control         
       }//eof if payload
-  } //eof event listener
-);
+    }//eof inner function
+  }//eof eventListener
+)(); //first call initializes stillSending  
+Pebble.addEventListener('appmessage', eventListener);
+  //eventListener in closure, so of type of function which takes argument e, we don't need argument here
+  //function(e) { //handle keys send from pebble, hard coded in c-file and appinfo.json
+  //} //eof event listener
+  
+
         
 
 onReady(function(event) {

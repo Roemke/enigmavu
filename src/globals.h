@@ -1,7 +1,7 @@
 //codes needed here and in c-programm
 //seems to be neccessary but not nice
 //codes for the vuplus
-#define KEY_POWER 1
+#define KEY_POWER 116
 #define KEY_VOLUP  115
 #define KEY_VOLDOWN  114
 #define KEY_ARRUP  103
