@@ -51,7 +51,7 @@ AppTimer * timerScroll = 0;
 static void initialise_ui(void) {
   s_window = window_create();
   window_set_background_color(s_window, GColorBlack);
-  window_set_fullscreen(s_window, false);
+  //window_set_fullscreen(s_window, false); //old
   
   s_res_pngupdown = gbitmap_create_with_resource(RESOURCE_ID_pngUpDown);
   s_res_pngpower = gbitmap_create_with_resource(RESOURCE_ID_pngPower);
