@@ -16,3 +16,10 @@
 
 
 extern bool accel; //type bool is defined in pebble.h
+enum Devices
+{
+  Vu 			= 0,
+  RaspiRadio 	= 1
+};
+
+extern uint8_t device;

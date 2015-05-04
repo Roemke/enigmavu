@@ -14,6 +14,7 @@ static ActionBarLayer *s_actionbarlayer_1;
 static TextLayer *tl_1Arrow;
 static TextLayer *tl_3Vol;
 static TextLayer *tl_2Power;
+static TextLayer *tl_Ident;
 //------------------------------------
 static char * textPower = "Power";
 static char * textVol = "Volume";
@@ -21,9 +22,11 @@ static char * textArrow = "Program";
 static char * textUp = "Up";
 static char * textDown = "Down";
 static char * textOK = "OK";
+static char * textIdVu="V\nu\n+";
+static char * textIdRaspi="RR\naa\nsd\nPi\nio";
 //------------------------------
 
-
+uint8_t device = 0; //start with the vu+
 
 enum Modes {
   none=0, 
@@ -36,6 +39,7 @@ enum AccelModes
   accUp 	= 1,
   accDown 	= 2
 };
+
 
 static uint8_t mode = none;
 static uint8_t accMode = accNone;
@@ -88,6 +92,16 @@ static void initialise_ui(void) {
   text_layer_set_text_alignment(tl_2Power, GTextAlignmentRight);
   text_layer_set_font(tl_2Power, s_res_roboto_condensed_21);
   layer_add_child(window_get_root_layer(s_window), (Layer *)tl_2Power);
+
+  // tl_Ident
+  tl_Ident = text_layer_create(GRect(4, 7, 25, 155));
+  text_layer_set_background_color(tl_Ident, GColorClear);
+  text_layer_set_text_color(tl_Ident, GColorWhite);
+  text_layer_set_text(tl_Ident, textIdVu);
+  text_layer_set_text_alignment(tl_Ident, GTextAlignmentCenter);
+  text_layer_set_font(tl_Ident, s_res_roboto_condensed_21);
+  layer_add_child(window_get_root_layer(s_window), (Layer *)tl_Ident);
+
 }
 
 static void destroy_ui(void) {
@@ -220,9 +234,21 @@ static void back_single_click_handler(ClickRecognizerRef recognizer, void *conte
 }
 
 //select long click - previous
+//switch controlled device - we have only to in the moment, so we
+//switch between them
 static void select_long_click_handler(ClickRecognizerRef recognizer, void *context) 
 {
-  //send info?
+	switch (device)
+	{
+	case Vu:
+		device = RaspiRadio;
+		text_layer_set_text(tl_Ident, textIdRaspi);
+		break;
+	case RaspiRadio:
+		device = Vu;
+		text_layer_set_text(tl_Ident, textIdVu);
+		break;
+	}
 }
 //volume
 static void down_single_click_handler(ClickRecognizerRef recognizer, void *context) {
